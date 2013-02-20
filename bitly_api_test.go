@@ -16,7 +16,7 @@ func getConnection(t *testing.T) *Connection {
         return nil
     }
     accessToken := BITLY_ACCESS_TOKEN
-    return &Connection{accessToken:accessToken}
+    return NewConnection(accessToken, "")
 }
 
 func TestApi(t *testing.T) {
