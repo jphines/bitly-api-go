@@ -25,7 +25,7 @@ func TestApi(t *testing.T) {
         t.Fatalf("bitly connection returned nil")
     }
     testUrl := "http://google.com/"
-    data, err := bitly.Shorten(testUrl, "", "", "")
+    data, err := bitly.Shorten(testUrl)
     if err != nil {
         t.Fatalf("bitly Shorten returned an err %s", err)
     }
@@ -38,5 +38,19 @@ func TestApi(t *testing.T) {
     hash := data["hash"].(string)
     if hash == "" {
         t.Fatalf("hash empty")
+    }
+}
+
+func TestExpand (t *testing.T) {
+    bitly := getConnection(t)
+    if bitly == nil {
+        t.Fatalf("bitly connection returned nil")
+    }
+    data, err := bitly.ExpandHash("test1_random_fjslfjieljfklsjflkas")
+    if err != nil {
+        t.Fatalf("bitly Expand returned an error %s", err)
+    }
+    if data["error"] != "NOT_FOUND" {
+        t.Fatalf("bitly Expand did not return NOT_FOUND", err)
     }
 }
