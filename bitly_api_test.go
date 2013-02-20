@@ -46,7 +46,7 @@ func TestExpand (t *testing.T) {
     if bitly == nil {
         t.Fatalf("bitly connection returned nil")
     }
-    data, err := bitly.ExpandHash("test1_random_fjslfjieljfklsjflkas")
+    data, err := bitly.Expand("test1_random_fjslfjieljfklsjflkas")
     if err != nil {
         t.Fatalf("bitly Expand returned an error %s", err)
     }
@@ -60,7 +60,7 @@ func TestClicks (t *testing.T) {
     if bitly == nil {
         t.Fatalf("bitly connection returned nil")
     }
-    data, err := bitly.ClicksHash("test1_random_fjslfjieljfklsjflkas")
+    data, err := bitly.Clicks("test1_random_fjslfjieljfklsjflkas")
     if err != nil {
         t.Fatalf("bitly clicks returned an error %s", err)
     }
@@ -68,7 +68,7 @@ func TestClicks (t *testing.T) {
         t.Fatalf("bitly ClicksHash did not return NOT_FOUND", err)
     }
     
-    data, err = bitly.ClicksByDayHash("test1_random_fjslfjieljfklsjflkas")
+    data, err = bitly.ClicksByDay("test1_random_fjslfjieljfklsjflkas")
     if err != nil {
         t.Fatalf("bitly clicks returned an error %s", err)
     }
@@ -76,11 +76,35 @@ func TestClicks (t *testing.T) {
         t.Fatalf("bitly ClicksHash did not return NOT_FOUND", err)
     }
     
-    data, err = bitly.ClicksByMinuteHash("test1_random_fjslfjieljfklsjflkas")
+    data, err = bitly.ClicksByMinute("test1_random_fjslfjieljfklsjflkas")
     if err != nil {
         t.Fatalf("bitly clicks returned an error %s", err)
     }
     if data["error"] != "NOT_FOUND" {
         t.Fatalf("bitly ClicksHash did not return NOT_FOUND", err)
     }
+    data, err = bitly.Clicks("http://bit.ly/3hQYj")
+    if err != nil {
+        t.Fatalf("bitly clicks returned an error %s", err)
+    }
+    if data["error"] == "NOT_FOUND" {
+        t.Fatalf("bitly ClicksHash did not return NOT_FOUND", err)
+    }
+    
+    data, err = bitly.ClicksByDay("http://bit.ly/3hQYj")
+    if err != nil {
+        t.Fatalf("bitly clicks returned an error %s", err)
+    }
+    if data["error"] == "NOT_FOUND" {
+        t.Fatalf("bitly ClicksHash did not return NOT_FOUND", err)
+    }
+    
+    data, err = bitly.ClicksByMinute("http://bit.ly/3hQYj")
+    if err != nil {
+        t.Fatalf("bitly clicks returned an error %s", err)
+    }
+    if data["error"] == "NOT_FOUND" {
+        t.Fatalf("bitly ClicksHash did not return NOT_FOUND", err)
+    }
+
 }

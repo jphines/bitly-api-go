@@ -3,6 +3,7 @@ package bitly_api
 import (
         "net/url"
         "fmt"
+        "strings"
         "net/http"
         "io/ioutil"
         "github.com/bitly/go-simplejson"
@@ -47,72 +48,45 @@ func (c *Connection) Shorten(uri string) (map[string]interface{}, error) {
     return c.shorten(params)
 }
 
+func hashOrUrl (mystery string) string {
+    var solved string
+    if strings.Contains(mystery, "/") {
+        solved = "shortUrl"
+    } else {
+        solved = "hash"
+    }
+    return solved
+}
+
 func (c *Connection) shorten(params url.Values) (map[string]interface{}, error){
     return c.call("shorten", params, false)
 }
 
-func (c *Connection) ExpandHash(hash string) (map[string]interface{}, error) {
+func (c *Connection) Expand(arg string) (map[string]interface{}, error) {
   params := url.Values{}
-  params.Set("hash", hash)
-  return c.expand(params)
-}
-
-func (c *Connection) ExpandShortUrl(shortUrl string) (map[string]interface{}, error) {
-  params := url.Values{}
-  params.Set("shortUrl", shortUrl)
-  return c.expand(params)
-
-}
-
-func (c *Connection) expand (params url.Values) (map[string]interface{}, error) {
+  atype := hashOrUrl(arg)
+  params.Set(atype, arg)
   return c.call("expand", params, true)
 }
 
-func (c *Connection) ClicksHash (hash string) (map[string]interface{}, error) {
+func (c *Connection) Clicks (arg string) (map[string]interface{}, error) {
   params := url.Values{}
-  params.Set("hash", hash)
-  return c.clicks(params)
-}
-
-func (c *Connection) ClicksShortUrl(shortUrl string) (map[string]interface{}, error) {
-  params := url.Values{}
-  params.Set("shortUrl", shortUrl)
-  return c.clicks(params)
-}
-
-func (c *Connection) clicks (params url.Values) (map[string]interface{}, error) {
+  atype := hashOrUrl(arg)
+  params.Set(atype, arg)
   return c.call("clicks", params, true)
 }
 
-func (c *Connection) ClicksByDayHash(hash string) (map[string]interface{}, error) {
+func (c *Connection) ClicksByDay (arg string) (map[string]interface{}, error) {
   params := url.Values{}
-  params.Set("hash", hash)
-  return c.clicksByDay(params)
-}
-
-func (c *Connection) ClicksByDayShortUrl(shortUrl string) (map[string]interface{}, error) {
-  params := url.Values{}
-  params.Set("shortUrl", shortUrl)
-  return c.clicksByDay(params)
-}
-
-func (c *Connection) clicksByDay (params url.Values) (map[string]interface{}, error){
+  atype := hashOrUrl(arg)
+  params.Set(atype, arg)
   return c.call("clicks_by_day", params, true)
 }
 
-func (c *Connection) ClicksByMinuteHash(hash string) (map[string]interface{}, error) {
+func (c *Connection) ClicksByMinute(arg string) (map[string]interface{}, error) {
   params := url.Values{}
-  params.Set("hash", hash)
-  return c.clicksByMinute(params)
-}
-
-func (c *Connection) ClicksByMinuteShortUrl(shortUrl string) (map[string]interface{}, error) {
-  params := url.Values{}
-  params.Set("shortUrl", shortUrl)
-  return c.clicksByMinute(params)
-}
-
-func (c *Connection) clicksByMinute (params url.Values) (map[string]interface{}, error){
+  atype := hashOrUrl(arg)
+  params.Set(atype, arg)
   return c.call("clicks_by_minute", params, true)
 }
 
