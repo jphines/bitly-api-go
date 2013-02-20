@@ -48,22 +48,7 @@ func (c *Connection) Shorten(uri string) (map[string]interface{}, error) {
 }
 
 func (c *Connection) shorten(params url.Values) (map[string]interface{}, error){
-    contents, err := c.call("v3/shorten", params)
-     if err != nil {
-      return nil, err
-    }
-
-    js, err := simplejson.NewJson([]byte(contents))
-    if err != nil {
-      return nil, err
-    }
-
-    data, err := js.Map()
-    if err != nil {
-      return nil, err
-    }
-
-    return data["data"].(map[string]interface{}), nil
+    return c.call("shorten", params, false)
 }
 
 func (c *Connection) ExpandHash(hash string) (map[string]interface{}, error) {
@@ -79,25 +64,59 @@ func (c *Connection) ExpandShortUrl(shortUrl string) (map[string]interface{}, er
 
 }
 
-func (c *Connection) expand(params url.Values) (map[string]interface{}, error) {
-  contents, err := c.call("v3/expand", params)
-  if err != nil {
-      return nil, err
-  }
-
-  js, err := simplejson.NewJson([]byte(contents))
-  if err != nil {
-      return nil, err
-  }
-  
-  data, err := js.Get("data").Get("expand").GetIndex(0).Map()
-  if err != nil {
-    return nil, err
-  }
-  return data, nil
+func (c *Connection) expand (params url.Values) (map[string]interface{}, error) {
+  return c.call("expand", params, true)
 }
 
-func (c *Connection) call (endpoint string, params url.Values) ([]byte, error) {
+func (c *Connection) ClicksHash (hash string) (map[string]interface{}, error) {
+  params := url.Values{}
+  params.Set("hash", hash)
+  return c.clicks(params)
+}
+
+func (c *Connection) ClicksShortUrl(shortUrl string) (map[string]interface{}, error) {
+  params := url.Values{}
+  params.Set("shortUrl", shortUrl)
+  return c.clicks(params)
+}
+
+func (c *Connection) clicks (params url.Values) (map[string]interface{}, error) {
+  return c.call("clicks", params, true)
+}
+
+func (c *Connection) ClicksByDayHash(hash string) (map[string]interface{}, error) {
+  params := url.Values{}
+  params.Set("hash", hash)
+  return c.clicksByDay(params)
+}
+
+func (c *Connection) ClicksByDayShortUrl(shortUrl string) (map[string]interface{}, error) {
+  params := url.Values{}
+  params.Set("shortUrl", shortUrl)
+  return c.clicksByDay(params)
+}
+
+func (c *Connection) clicksByDay (params url.Values) (map[string]interface{}, error){
+  return c.call("clicks_by_day", params, true)
+}
+
+func (c *Connection) ClicksByMinuteHash(hash string) (map[string]interface{}, error) {
+  params := url.Values{}
+  params.Set("hash", hash)
+  return c.clicksByMinute(params)
+}
+
+func (c *Connection) ClicksByMinuteShortUrl(shortUrl string) (map[string]interface{}, error) {
+  params := url.Values{}
+  params.Set("shortUrl", shortUrl)
+  return c.clicksByMinute(params)
+}
+
+func (c *Connection) clicksByMinute (params url.Values) (map[string]interface{}, error){
+  return c.call("clicks_by_minute", params, true)
+}
+
+func (c *Connection) call (endpoint string, params url.Values, array_wrapped bool) (map[string]interface{}, error) {
 
     var scheme string
     var host string
@@ -116,7 +135,7 @@ func (c *Connection) call (endpoint string, params url.Values) ([]byte, error) {
     // if c.secret != "" {
         // params.Set("signature", generateSignature(params, c.secret))
     // }
-    request_url := fmt.Sprintf("%s://%s/%s?%s", scheme, host, endpoint, params.Encode())
+    request_url := fmt.Sprintf("%s://%s/v3/%s?%s", scheme, host, endpoint, params.Encode())
 
     
     http_client := &http.Client{}
@@ -132,6 +151,25 @@ func (c *Connection) call (endpoint string, params url.Values) ([]byte, error) {
     }
 
     defer response.Body.Close()
+    contents, err := ioutil.ReadAll(response.Body)
+    if err != nil {
+        return nil, err
+    }
+
+    js, err := simplejson.NewJson([]byte(contents))
+    if err != nil {
+        return nil, err
+    }
     
-    return ioutil.ReadAll(response.Body)
+    var data map[string]interface{}
+    if array_wrapped {
+        data, err = js.Get("data").Get(endpoint).GetIndex(0).Map()
+    } else {
+        data, err = js.Get("data").Map()
+    }
+    if err != nil {
+        return nil, err
+    }
+
+    return data, nil
 }
