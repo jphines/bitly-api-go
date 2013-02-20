@@ -8,14 +8,14 @@ import (
 
 func getConnection(t *testing.T) *Connection {
 
-    token := "BITLY_API_TOKEN"
+    token := "BITLY_ACCESS_TOKEN"
 
-    BITLY_API_TOKEN := os.Getenv(token)
-    if BITLY_API_TOKEN == "" {
+    BITLY_ACCESS_TOKEN := os.Getenv(token)
+    if BITLY_ACCESS_TOKEN == "" {
         t.Fatalf(token + " not found")
         return nil
     }
-    accessToken := BITLY_API_TOKEN
+    accessToken := BITLY_ACCESS_TOKEN
     return &Connection{accessToken:accessToken}
 }
 

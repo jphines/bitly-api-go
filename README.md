@@ -9,7 +9,7 @@ Your username is the lowercase name shown when you login to bitly, your access t
 
 To run the tests either export the environment variable or set it up inline before calling `nosetests`:
 
-    BITLY_API_TOKEN=<accesstoken> go test
+    BITLY_ACCESS_TOKEN=<accesstoken> go test
 
 ## API Documentation
 

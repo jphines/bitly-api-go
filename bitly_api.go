@@ -13,24 +13,24 @@ type Json struct {
 }
 
 type Connection struct {
-  host string
-  sslHost string
   login string
   apiKey string
   accessToken string
   secret string
-  userAgent string
 }
 
-func NewConnection (login string, apiKey string, accessToken string, secret string) *Connection{
+func NewConnection (accessToken string, secret string) *Connection{
   c := new(Connection)
-  c.host = "api.bit.ly"
-  c.sslHost = "api-ssl.bit.ly"
-  c.login = login
-  c.apiKey = apiKey
   c.accessToken = accessToken
   c.secret = secret
-  c.userAgent = "Go/bitly-api"
+  return c
+}
+
+func NewConnectionApiKey(apiKey string, login string, secret string) *Connection {
+  c := new(Connection)
+  c.apiKey = apiKey
+  c.login = login
+  c.secret = secret
   return c
 }
 
@@ -48,7 +48,7 @@ func (c *Connection) Shorten(uri string) (map[string]interface{}, error) {
 }
 
 func (c *Connection) shorten(params url.Values) (map[string]interface{}, error){
-    contents, err := c.call(c.host, "v3/shorten", params)
+    contents, err := c.call("v3/shorten", params)
      if err != nil {
       return nil, err
     }
@@ -79,8 +79,8 @@ func (c *Connection) ExpandShortUrl(shortUrl string) (map[string]interface{}, er
 
 }
 
-func (c *Connection) expand(params url.Values) (map[string]interface{}, error){
-  contents, err := c.call(c.host, "v3/expand", params)
+func (c *Connection) expand(params url.Values) (map[string]interface{}, error) {
+  contents, err := c.call("v3/expand", params)
   if err != nil {
       return nil, err
   }
@@ -89,6 +89,7 @@ func (c *Connection) expand(params url.Values) (map[string]interface{}, error){
   if err != nil {
       return nil, err
   }
+  
   data, err := js.Get("data").Get("expand").GetIndex(0).Map()
   if err != nil {
     return nil, err
@@ -96,9 +97,10 @@ func (c *Connection) expand(params url.Values) (map[string]interface{}, error){
   return data, nil
 }
 
-func (c *Connection) call (host string, endpoint string, params url.Values) ([]byte, error) {
+func (c *Connection) call (endpoint string, params url.Values) ([]byte, error) {
 
     var scheme string
+    var host string
     
     if c.accessToken != "" {
         scheme = "https"
@@ -108,6 +110,7 @@ func (c *Connection) call (host string, endpoint string, params url.Values) ([]b
         scheme = "http"
         params.Set("login", c.login)
         params.Set("apiKey", c.apiKey)
+        host = "api.bit.ly"
     }
 
     // if c.secret != "" {
@@ -122,7 +125,7 @@ func (c *Connection) call (host string, endpoint string, params url.Values) ([]b
         return nil, err
     }
 
-    request.Header.Add("User-agent", c.userAgent)
+    request.Header.Add("User-agent", "Go/bitly-api")
     response, err := http_client.Do(request)
     if err != nil {
         return nil, err
@@ -131,4 +134,4 @@ func (c *Connection) call (host string, endpoint string, params url.Values) ([]b
     defer response.Body.Close()
     
     return ioutil.ReadAll(response.Body)
-  }
+}
