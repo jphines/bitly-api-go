@@ -6,6 +6,7 @@ import (
 )
 
 var testUrl string = "http://bitly.com/3hQYj"
+var longUrl string = "http://google.com"
 
 func getConnection(t *testing.T) *Connection {
 
@@ -125,3 +126,21 @@ func TestLinkEncodersCount(t *testing.T) {
 		t.Fatalf("bitly link/encoders_count returned an unexpected result")
 	}
 }
+
+func TestUserLink(t *testing.T) {
+  bitly := getConnection(t)
+
+  data, err := bitly.UserLinkLookup(testUrl)
+	if err != nil {
+	  t.Fatalf("bitly UserLinkLookup returned an error %s", err)
+	}
+  if data["url"] != testUrl {
+    t.Fatalf("bitly user/link_lookup returned an expected result")
+  }
+
+  data, err = bitly.UserLinkSave(longUrl, UserLink{private:true})
+  if data["long_url"] != longUrl {
+    t.Fatalf("bitly user/link_save returned an expected result %s", data["link"])
+  }
+}
+

@@ -21,6 +21,14 @@ type Connection struct {
 	secret      string
 }
 
+type UserLink struct {
+  title string
+  note string
+  private bool
+  user_ts string
+  archived string
+}
+
 func NewConnection(accessToken string, secret string) *Connection {
 	c := new(Connection)
 	c.accessToken = accessToken
@@ -71,6 +79,28 @@ func constructLinkParams(arg string) (url.Values) {
   return params
 }
 
+func constructUserLinkParams(userLink UserLink) (url.Values) {
+  params := url.Values{}
+  
+  if userLink.title != "" {
+    params.Set("title", userLink.title)
+  }
+  if userLink.note != "" {
+    params.Set("note", userLink.note)
+  }
+  if userLink.private {
+     params.Set("private", "true")
+  }
+  if userLink.user_ts != "" {
+    params.Set("user_ts", userLink.user_ts)
+  }
+  if userLink.archived != "" {
+    params.Set("archived", userLink.archived)
+  }
+
+  return params
+}
+
 func (c *Connection) shorten(params url.Values) (map[string]interface{}, error) {
 	return c.call("shorten", params, false)
 }
@@ -103,7 +133,39 @@ func (c *Connection) LinkEncodersCount(arg string) (map[string]interface{}, erro
   return c.call("link/encoders_count", constructLinkParams(arg), false)
 }
 
-func (c *Connection) callOath2(endpoint string, params url.Values, array_wrapped bool) (map[string]interface{}, error) {
+func (c *Connection) UserLinkLookup(uri string) (map[string]interface{}, error) {
+	params := url.Values{}
+	params.Set("url", uri)
+  return c.call("user/link_lookup", params, true)
+}
+
+func (c *Connection) UserLinkEdit(link string, edit string, userLink UserLink) (map[string]interface{}, error) {
+  if link == "" || edit == "" {
+    return nil, errors.New("UserLinkEdit Missing Args")
+  }
+  
+  params := constructUserLinkParams(userLink)
+  params.Set("link", link)
+  params.Set("edit", edit)
+  
+  return c.callOauth2("user/link_edit", params, true)
+}
+
+func (c *Connection) UserLinkSave (longUrl string, userLink UserLink) (map[string]interface{}, error){
+  if longUrl == "" {
+    return nil, errors.New("UserLinkSave Missing Args")
+  }
+  if userLink.archived != "" {
+    return nil, errors.New("UserLinkSave does not support archive")
+  }
+  
+  params := constructUserLinkParams(userLink)
+  params.Set("longUrl", longUrl)
+  
+  return c.callOauth2("user/link_save", params, true)
+}
+
+func (c *Connection) callOauth2(endpoint string, params url.Values, array_wrapped bool) (map[string]interface{}, error) {
     if c.accessToken == "" {
         return nil, errors.New(fmt.Sprintf("This endpoint %s requires Oauth", endpoint))
     }
@@ -157,7 +219,16 @@ func (c *Connection) call(endpoint string, params url.Values, array_wrapped bool
 
 	var data map[string]interface{}
 	if array_wrapped {
-		data, err = js.Get("data").Get(endpoint).GetIndex(0).Map()
+	  if strings.Contains(endpoint, "/") {
+      split := strings.Split(endpoint, "/")
+      endpoint = split[len(split) - 1]
+      fmt.Println(endpoint)
+    }
+    if endpoint == "link_save" {
+      data, err = js.Get("data").Get(endpoint).Map()
+    } else {
+		  data, err = js.Get("data").Get(endpoint).GetIndex(0).Map()
+    }
 	} else {
 		data, err = js.Get("data").Map()
 	}
