@@ -29,6 +29,14 @@ type UserLink struct {
   archived string
 }
 
+type Metrics struct {
+  unit string
+  units int
+  tzOffset int
+  rollup bool
+  limit string
+}
+
 func NewConnection(accessToken string, secret string) *Connection {
 	c := new(Connection)
 	c.accessToken = accessToken
@@ -66,6 +74,15 @@ func hashOrUrl(mystery string) string {
 	return solved
 }
 
+func contains(stringSlice []string, elem string) (bool) {
+    for i := 0; i < len(stringSlice); i++ {
+        if stringSlice[i] == elem {
+          return true
+        }
+    }
+    return false
+}
+
 func constructBasicParams(arg string) (url.Values) {
 	params := url.Values{}
 	atype := hashOrUrl(arg)
@@ -99,6 +116,29 @@ func constructUserLinkParams(userLink UserLink) (url.Values) {
   }
 
   return params
+}
+
+func constructMetricParams(metrics Metrics, params url.Values) (url.Values, error) {
+    allowed_units := []string{"minute", "hour", "day", "week", "mweek", "month"}
+    if metrics.unit != "" && metrics.units != 0 {
+        if contains(allowed_units, metrics.unit) {
+          params.Set("unit", metrics.unit)
+          params.Set("units", fmt.Sprintf("%d", metrics.units))
+        }
+    }
+    if metrics.tzOffset != 0 {
+        if metrics.tzOffset <= -12 || metrics.tzOffset >= 12 {
+            return nil, errors.New("Invalid tzOffset")
+        }
+        params.Set("tz_offset", fmt.Sprintf("%d", metrics.tzOffset))
+    }
+    if !metrics.rollup {
+        params.Set("rollup", "false")
+    }
+    if metrics.limit != "" {
+        params.Set("limit", metrics.limit)
+    }
+    return params, nil
 }
 
 func (c *Connection) shorten(params url.Values) (map[string]interface{}, error) {
@@ -165,6 +205,14 @@ func (c *Connection) UserLinkSave (longUrl string, userLink UserLink) (map[strin
   return c.callOauth2("user/link_save", params, true)
 }
 
+func (c *Connection) callOauth2Metrics(endpoint string, params url.Values, metrics Metrics) (map[string]interface{}, error) {
+    params, err := constructMetricParams(metrics, params)
+    if err != nil {
+      return nil, err
+    }
+    return c.callOauth2(endpoint, params, true)
+}
+
 func (c *Connection) callOauth2(endpoint string, params url.Values, array_wrapped bool) (map[string]interface{}, error) {
     if c.accessToken == "" {
         return nil, errors.New(fmt.Sprintf("This endpoint %s requires Oauth", endpoint))
@@ -222,7 +270,6 @@ func (c *Connection) call(endpoint string, params url.Values, array_wrapped bool
 	  if strings.Contains(endpoint, "/") {
       split := strings.Split(endpoint, "/")
       endpoint = split[len(split) - 1]
-      fmt.Println(endpoint)
     }
     if endpoint == "link_save" {
       data, err = js.Get("data").Get(endpoint).Map()
