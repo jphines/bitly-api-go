@@ -5,6 +5,8 @@ import (
 	"testing"
 )
 
+var testUrl string = "http://bitly.com/3hQYj"
+
 func getConnection(t *testing.T) *Connection {
 
 	token := "BITLY_ACCESS_TOKEN"
@@ -15,14 +17,11 @@ func getConnection(t *testing.T) *Connection {
 		return nil
 	}
 	accessToken := BITLY_ACCESS_TOKEN
-	return NewConnection(accessToken, "")
+  return NewConnection(accessToken, "")
 }
 
 func TestApi(t *testing.T) {
 	bitly := getConnection(t)
-	if bitly == nil {
-		t.Fatalf("bitly connection returned nil")
-	}
 	testUrl := "http://google.com/"
 	data, err := bitly.Shorten(testUrl)
 	if err != nil {
@@ -42,10 +41,8 @@ func TestApi(t *testing.T) {
 
 func TestExpand(t *testing.T) {
 	bitly := getConnection(t)
-	if bitly == nil {
-		t.Fatalf("bitly connection returned nil")
-	}
-	data, err := bitly.Expand("test1_random_fjslfjieljfklsjflkas")
+	
+  data, err := bitly.Expand("test1_random_fjslfjieljfklsjflkas")
 	if err != nil {
 		t.Fatalf("bitly Expand returned an error %s", err)
 	}
@@ -56,10 +53,8 @@ func TestExpand(t *testing.T) {
 
 func TestClicks(t *testing.T) {
 	bitly := getConnection(t)
-	if bitly == nil {
-		t.Fatalf("bitly connection returned nil")
-	}
-	data, err := bitly.Clicks("test1_random_fjslfjieljfklsjflkas")
+  
+  data, err := bitly.Clicks("test1_random_fjslfjieljfklsjflkas")
 	if err != nil {
 		t.Fatalf("bitly clicks returned an error %s", err)
 	}
@@ -103,7 +98,30 @@ func TestClicks(t *testing.T) {
 		t.Fatalf("bitly clicks returned an error %s", err)
 	}
 	if data["error"] == "NOT_FOUND" {
-		t.Fatalf("bitly ClicksHash did not return NOT_FOUND", err)
+		t.Fatalf("bitly ClicksHash did not return NOT_FOUND %s", err)
 	}
+}
 
+func TestInfo(t *testing.T) {
+	bitly := getConnection(t)
+
+  data, err := bitly.Info(testUrl)
+	if err != nil {
+		t.Fatalf("bitly clicks returned an error %s", err)
+	}
+	if data["short_url"] != testUrl {
+		t.Fatalf("bitly /info returned an unexpected result")
+	}
+}
+
+func TestLinkEncodersCount(t *testing.T) {
+	bitly := getConnection(t)
+
+  data, err := bitly.LinkEncodersCount(testUrl)
+	if err != nil {
+		t.Fatalf("bitly clicks returned an error %s", err)
+	}
+	if data["aggregate_link"] != testUrl {
+		t.Fatalf("bitly link/encoders_count returned an unexpected result")
+	}
 }
