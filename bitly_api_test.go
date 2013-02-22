@@ -142,5 +142,10 @@ func TestUserLink(t *testing.T) {
   if data["long_url"] != longUrl {
     t.Fatalf("bitly user/link_save returned an expected result %s", data["link"])
   }
+
+  data, err = bitly.UserLinkEdit(testUrl, "title", UserLink{})
+  if data["link"] != testUrl {
+    t.Fatalf("bitly user/link_save returned an expected result %s", data["link"])
+  }
 }
 
