@@ -27,7 +27,7 @@ LinkEncodersCount
 UserLinkLookup
 UserLinkEdit
 UserLinkSave
-
+UserLinkHistory
 
 To Implement:
 LinkClicks
@@ -47,7 +47,6 @@ UserTrackingDomainList
 UserTrakcingDomainClicks
 UserTrackingDomainShortenCounts
 UserInfo
-UserLinkHistory
 UserNetworkHistory
 Info
 ProDomain

@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"strings"
   "errors"
+  "reflect"
 )
 
 type Json struct {
@@ -27,6 +28,14 @@ type UserLink struct {
   private bool
   user_ts string
   archived string
+}
+
+type UserLinkHistory struct {
+  createdBefore int
+  createdAfter int
+  archived string
+  limit int
+  offset int
 }
 
 type Metrics struct {
@@ -96,26 +105,47 @@ func constructLinkParams(arg string) (url.Values) {
   return params
 }
 
-func constructUserLinkParams(userLink UserLink) (url.Values) {
+func convertStructToString(field reflect.Value) (string, bool) {
+  switch field.Kind() {
+    case  reflect.Float64:
+      if field.IsValid() {
+        return "", false
+      }
+      return fmt.Sprintf("%f", field.Float()), true
+    case reflect.Bool:
+      return fmt.Sprintf("%t", field.Bool()), true
+    case reflect.Int:
+      if field.IsValid() {
+        return "", false
+      }
+      return fmt.Sprintf("%d", field.Int()), true
+    case reflect.String:
+      if field.IsValid() {
+        return "", false
+      }
+      return fmt.Sprintf("%s", field.String()), true
+  }
+  return "", false
+}
+
+func constructParams(typeStruct interface{}) (url.Values, error) {
   params := url.Values{}
-  
-  if userLink.title != "" {
-    params.Set("title", userLink.title)
-  }
-  if userLink.note != "" {
-    params.Set("note", userLink.note)
-  }
-  if userLink.private {
-     params.Set("private", "true")
-  }
-  if userLink.user_ts != "" {
-    params.Set("user_ts", userLink.user_ts)
-  }
-  if userLink.archived != "" {
-    params.Set("archived", userLink.archived)
+  avalue := reflect.ValueOf(typeStruct)
+  atype := reflect.TypeOf(typeStruct)
+
+  if atype.Kind() != reflect.Struct {
+    return nil, errors.New(fmt.Sprintf("Invalid Type %s", atype.Kind()))
   }
 
-  return params
+  for i := 0; i < atype.NumField(); i++ {
+    fieldType := atype.Field(i)
+    fieldValue := avalue.Field(i)
+    if value, OK := convertStructToString(fieldValue); OK {
+      params.Set(fieldType.Name, value)
+    }
+  }
+
+  return params, nil
 }
 
 func constructMetricParams(metrics Metrics, params url.Values) (url.Values, error) {
@@ -184,7 +214,11 @@ func (c *Connection) UserLinkEdit(link string, edit string, userLink UserLink) (
     return nil, errors.New("UserLinkEdit Missing Args")
   }
   
-  params := constructUserLinkParams(userLink)
+  params, err := constructParams(userLink)
+  if err != nil {
+    return nil, err
+  }
+
   params.Set("link", link)
   params.Set("edit", edit)
   
@@ -199,10 +233,21 @@ func (c *Connection) UserLinkSave (longUrl string, userLink UserLink) (map[strin
     return nil, errors.New("UserLinkSave does not support archive")
   }
   
-  params := constructUserLinkParams(userLink)
+  params, err := constructParams(userLink)
+  if err != nil {
+    return nil, err
+  }
   params.Set("longUrl", longUrl)
   
   return c.callOauth2("user/link_save", params, true)
+}
+
+func (c *Connection) UserLinkHistory(userHistory UserLinkHistory) (map[string]interface{}, error){
+  params, err := constructParams(userHistory)
+  if err != nil {
+    return nil, err
+  }
+  return c.callOauth2("user/link_history", params, true)
 }
 
 func (c *Connection) callOauth2Metrics(endpoint string, params url.Values, metrics Metrics) (map[string]interface{}, error) {

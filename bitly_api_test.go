@@ -148,5 +148,10 @@ func TestUserLink(t *testing.T) {
   if data["link"] != linkUrl {
     t.Fatalf("bitly user/link_edit returned an expected result %s", data["link"])
   }
+
+  data, err = bitly.UserLinkHistory(UserLinkHistory{archived:"on"})
+  if data["archived"] != false {
+    t.Fatalf("bitly user/link_history returned an expected result %s", data["archived"])
+  }
 }
 
