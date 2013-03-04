@@ -271,7 +271,7 @@ func (c *Connection) call(endpoint string, params url.Values, array_wrapped bool
       split := strings.Split(endpoint, "/")
       endpoint = split[len(split) - 1]
     }
-    if endpoint == "link_save" {
+    if endpoint == "link_save"  || endpoint == "link_edit" {
       data, err = js.Get("data").Get(endpoint).Map()
     } else {
 		  data, err = js.Get("data").Get(endpoint).GetIndex(0).Map()

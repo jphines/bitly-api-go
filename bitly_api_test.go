@@ -5,6 +5,7 @@ import (
 	"testing"
 )
 
+var linkUrl string = "http://bitly.com/Xlq5ZH"
 var testUrl string = "http://bitly.com/3hQYj"
 var longUrl string = "http://google.com"
 
@@ -143,9 +144,9 @@ func TestUserLink(t *testing.T) {
     t.Fatalf("bitly user/link_save returned an expected result %s", data["link"])
   }
 
-  data, err = bitly.UserLinkEdit(testUrl, "title", UserLink{})
-  if data["link"] != testUrl {
-    t.Fatalf("bitly user/link_save returned an expected result %s", data["link"])
+  data, err = bitly.UserLinkEdit(linkUrl, "title", UserLink{title:"New Title"})
+  if data["link"] != linkUrl {
+    t.Fatalf("bitly user/link_edit returned an expected result %s", data["link"])
   }
 }
 
