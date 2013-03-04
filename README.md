@@ -14,3 +14,18 @@ To run the tests either export the environment variable or set it up inline befo
 ## API Documentation
 
 http://dev.bitly.com/
+
+Methods:
+
+Shorten
+Expand
+Clicks
+ClicksByDay
+ClicksByMinute
+Referrers
+Info
+LinkEncodersCount
+UserLinkLookup
+UserLinkEdit
+UserLinkSave
+
