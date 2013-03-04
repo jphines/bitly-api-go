@@ -307,6 +307,7 @@ func (c *Connection) call(endpoint string, params url.Values, array_wrapped bool
 		return nil, err
 	}
 
+  api_error := ""
 	var data map[string]interface{}
 	if array_wrapped {
 	  if strings.Contains(endpoint, "/") {
@@ -315,12 +316,18 @@ func (c *Connection) call(endpoint string, params url.Values, array_wrapped bool
     }
     if endpoint == "link_save"  || endpoint == "link_edit" {
       data, err = js.Get("data").Get(endpoint).Map()
+      api_error, _ = js.Get("status_txt").String()
     } else {
 		  data, err = js.Get("data").Get(endpoint).GetIndex(0).Map()
+      api_error, _ = js.Get("status_txt").String()
     }
 	} else {
 		data, err = js.Get("data").Map()
+    api_error, _ = js.Get("status_txt").String()
 	}
+  if api_error != "OK" {
+    return nil, errors.New(api_error)
+  }
 	if err != nil {
 		return nil, err
 	}

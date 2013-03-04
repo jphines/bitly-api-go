@@ -25,19 +25,9 @@ func getConnection(t *testing.T) *Connection {
 func TestApi(t *testing.T) {
 	bitly := getConnection(t)
 	testUrl := "http://google.com/"
-	data, err := bitly.Shorten(testUrl)
+	_, err := bitly.Shorten(testUrl)
 	if err != nil {
 		t.Fatalf("bitly Shorten returned an err %s", err)
-	}
-
-	longUrl := data["long_url"].(string)
-	if testUrl != longUrl {
-		t.Fatalf("test url != long url from return")
-	}
-
-	hash := data["hash"].(string)
-	if hash == "" {
-		t.Fatalf("hash empty")
 	}
 }
 
@@ -107,51 +97,42 @@ func TestClicks(t *testing.T) {
 func TestInfo(t *testing.T) {
 	bitly := getConnection(t)
 
-  data, err := bitly.Info(testUrl)
+  _, err := bitly.Info(testUrl)
 	if err != nil {
-		t.Fatalf("bitly clicks returned an error %s", err)
-	}
-	if data["short_url"] != testUrl {
-		t.Fatalf("bitly /info returned an unexpected result")
+		t.Fatalf("bitly Info returned an error %s", err)
 	}
 }
 
 func TestLinkEncodersCount(t *testing.T) {
 	bitly := getConnection(t)
 
-  data, err := bitly.LinkEncodersCount(testUrl)
+  _, err := bitly.LinkEncodersCount(testUrl)
 	if err != nil {
-		t.Fatalf("bitly clicks returned an error %s", err)
-	}
-	if data["aggregate_link"] != testUrl {
-		t.Fatalf("bitly link/encoders_count returned an unexpected result")
+		t.Fatalf("bitly links_encoders_count returned an error %s", err)
 	}
 }
 
 func TestUserLink(t *testing.T) {
   bitly := getConnection(t)
 
-  data, err := bitly.UserLinkLookup(testUrl)
+  _, err := bitly.UserLinkLookup(testUrl)
 	if err != nil {
 	  t.Fatalf("bitly UserLinkLookup returned an error %s", err)
 	}
-  if data["url"] != testUrl {
-    t.Fatalf("bitly user/link_lookup returned an expected result")
+  
+  _, err = bitly.UserLinkSave(longUrl, UserLink{private:true})
+  if err != nil && err.Error() != "LINK_ALREADY_EXISTS" {
+    t.Fatalf("bitly user/link_save returned an expected result %s", err)
   }
 
-  data, err = bitly.UserLinkSave(longUrl, UserLink{private:true})
-  if data["long_url"] != longUrl {
-    t.Fatalf("bitly user/link_save returned an expected result %s", data["link"])
+  _, err = bitly.UserLinkEdit(linkUrl, "title", UserLink{title:"New Title"})
+  if err != nil {
+    t.Fatalf("bitly user/link_edit returned an expected result %s", err)
   }
 
-  data, err = bitly.UserLinkEdit(linkUrl, "title", UserLink{title:"New Title"})
-  if data["link"] != linkUrl {
-    t.Fatalf("bitly user/link_edit returned an expected result %s", data["link"])
-  }
-
-  data, err = bitly.UserLinkHistory(UserLinkHistory{archived:"on"})
-  if data["archived"] != true {
-    t.Fatalf("bitly user/link_history returned an expected result %s", data["archived"])
+  _, err = bitly.UserLinkHistory(UserLinkHistory{archived:"on"})
+  if err != nil {
+    t.Fatalf("bitly user/link_history returned an expected result %s", err)
   }
 }
 
