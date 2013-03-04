@@ -41,9 +41,9 @@ type UserLinkHistory struct {
 type Metrics struct {
   unit string
   units int
-  tzOffset int
-  rollup bool
-  limit string
+  tzOffset *int
+  rollup *bool
+  limit int
 }
 
 func NewConnection(accessToken string, secret string) *Connection {
@@ -99,31 +99,31 @@ func constructBasicParams(arg string) (url.Values) {
   return params
 }
 
-func constructLinkParams(arg string) (url.Values) {
-	params := url.Values{}
-  params.Set("link", arg)
-  return params
-}
-
-func convertStructToString(field reflect.Value) (string, bool) {
+func convertValueToString(field reflect.Value) (string, bool) {
   switch field.Kind() {
-    case  reflect.Float64:
-      if field.IsValid() {
-        return "", false
-      }
+  case  reflect.Float64:
+    if field.Float() != 0.0 {
       return fmt.Sprintf("%f", field.Float()), true
-    case reflect.Bool:
-      return fmt.Sprintf("%t", field.Bool()), true
-    case reflect.Int:
-      if field.IsValid() {
-        return "", false
-      }
+    }
+  case reflect.Bool:
+    return fmt.Sprintf("%t", field.Bool()), true
+  case reflect.Int:
+    if field.Int() != 0 {
       return fmt.Sprintf("%d", field.Int()), true
-    case reflect.String:
-      if field.IsValid() {
-        return "", false
-      }
+    }
+  case reflect.String:
+    if field.String() != "" {
       return fmt.Sprintf("%s", field.String()), true
+    }
+  case reflect.Ptr:
+    if field.Pointer() != 0 {
+      field := field.Elem()
+      if field.Kind() == reflect.Int {
+        return fmt.Sprintf("%d", field.Int()), true
+      } else if field.Kind() == reflect.Bool {
+        return fmt.Sprintf("%t", field.Int()), true
+      }
+    }
   }
   return "", false
 }
@@ -140,33 +140,28 @@ func constructParams(typeStruct interface{}) (url.Values, error) {
   for i := 0; i < atype.NumField(); i++ {
     fieldType := atype.Field(i)
     fieldValue := avalue.Field(i)
-    if value, OK := convertStructToString(fieldValue); OK {
+    if value, OK := convertValueToString(fieldValue); OK {
       params.Set(fieldType.Name, value)
     }
   }
-
   return params, nil
 }
 
-func constructMetricParams(metrics Metrics, params url.Values) (url.Values, error) {
+func constructMetricParams(metrics Metrics) (url.Values, error) {
     allowed_units := []string{"minute", "hour", "day", "week", "mweek", "month"}
     if metrics.unit != "" && metrics.units != 0 {
-        if contains(allowed_units, metrics.unit) {
-          params.Set("unit", metrics.unit)
-          params.Set("units", fmt.Sprintf("%d", metrics.units))
+        if !contains(allowed_units, metrics.unit) {
+          return nil, errors.New("Invalid unit")
         }
     }
-    if metrics.tzOffset != 0 {
-        if metrics.tzOffset <= -12 || metrics.tzOffset >= 12 {
-            return nil, errors.New("Invalid tzOffset")
-        }
-        params.Set("tz_offset", fmt.Sprintf("%d", metrics.tzOffset))
+    if metrics.tzOffset != nil {
+      if *metrics.tzOffset != 0  && (*metrics.tzOffset <= -12 || *metrics.tzOffset >= 12) {
+        return nil, errors.New("Invalid tzOffset")
+      }
     }
-    if !metrics.rollup {
-        params.Set("rollup", "false")
-    }
-    if metrics.limit != "" {
-        params.Set("limit", metrics.limit)
+    params, err := constructParams(metrics)
+    if err != nil{
+      return nil, err
     }
     return params, nil
 }
@@ -179,7 +174,7 @@ func (c *Connection) Expand(arg string) (map[string]interface{}, error) {
 	return c.call("expand", constructBasicParams(arg), true)
 }
 
-func (c *Connection) Clicks(arg string) (map[string]interface{}, error) {
+func (c *Connection) Clicks (arg string) (map[string]interface{}, error) {
 	return c.call("clicks", constructBasicParams(arg), true)
 }
 
@@ -199,8 +194,19 @@ func (c *Connection) Info (arg string) (map[string]interface{}, error) {
 	return c.call("info", constructBasicParams(arg), true)
 }
 
-func (c *Connection) LinkEncodersCount(arg string) (map[string]interface{}, error) {
-  return c.call("link/encoders_count", constructLinkParams(arg), false)
+func (c *Connection) LinkEncodersCount(link string) (map[string]interface{}, error) {
+  params := url.Values{}
+  params.Set("link", link)
+  return c.call("link/encoders_count", params, false)
+}
+
+func (c *Connection) LinkClicks(link string, metrics Metrics) (map[string]interface{}, error) {
+  params, err := constructMetricParams(metrics)
+  if err != nil {
+    return nil, err
+  }
+  params.Set("link", link)
+  return c.callOauth2("link/clicks", params, false)
 }
 
 func (c *Connection) UserLinkLookup(uri string) (map[string]interface{}, error) {
@@ -213,7 +219,7 @@ func (c *Connection) UserLinkEdit(link string, edit string, userLink UserLink) (
   if link == "" || edit == "" {
     return nil, errors.New("UserLinkEdit Missing Args")
   }
-  
+
   params, err := constructParams(userLink)
   if err != nil {
     return nil, err
@@ -221,7 +227,6 @@ func (c *Connection) UserLinkEdit(link string, edit string, userLink UserLink) (
 
   params.Set("link", link)
   params.Set("edit", edit)
-  
   return c.callOauth2("user/link_edit", params, true)
 }
 
@@ -248,14 +253,6 @@ func (c *Connection) UserLinkHistory(userHistory UserLinkHistory) (map[string]in
     return nil, err
   }
   return c.callOauth2("user/link_history", params, true)
-}
-
-func (c *Connection) callOauth2Metrics(endpoint string, params url.Values, metrics Metrics) (map[string]interface{}, error) {
-    params, err := constructMetricParams(metrics, params)
-    if err != nil {
-      return nil, err
-    }
-    return c.callOauth2(endpoint, params, true)
 }
 
 func (c *Connection) callOauth2(endpoint string, params url.Values, array_wrapped bool) (map[string]interface{}, error) {
