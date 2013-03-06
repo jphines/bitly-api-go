@@ -187,5 +187,48 @@ func TestLinkMetrics(t *testing.T) {
   if err != nil {
     t.Fatalf("bitly link/social returned an error %s", err)
   }
+}
 
+func TestUserMetrics(t *testing.T) {
+  bitly := getConnection(t)
+
+  _, err := bitly.UserClicks(Metrics{limit:1})
+  if err != nil {
+    t.Fatalf("bitly user/clicks returned an error %s", err)
+  }
+
+  _, err = bitly.UserCountries(Metrics{limit:1})
+  if err != nil {
+    t.Fatalf("bitly user/countries returned an error %s", err)
+  }
+
+  _, err = bitly.UserPopularLinks(Metrics{limit:1})
+  if err != nil {
+    t.Fatalf("bitly user/popular_links returned an error %s", err)
+  }
+
+  _, err = bitly.UserReferrers(Metrics{limit:1})
+  if err != nil {
+    t.Fatalf("bitly user/referrers returned an error %s", err)
+  }
+
+  _, err = bitly.UserReferringDomains(Metrics{limit:1})
+  if err != nil {
+    t.Fatalf("bitly user/referrering_domains returned an error %s", err)
+  }
+
+  _, err = bitly.UserShareCounts(Metrics{limit:1})
+  if err != nil {
+    t.Fatalf("bitly user/share_counts returned an error %s", err)
+  }
+
+  _, err = bitly.UserShareCountsByType(Metrics{limit:1})
+  if err != nil {
+    t.Fatalf("bitly user/share_counts_by_share_type returned an error %s", err)
+  }
+
+  _, err = bitly.UserShortenCounts(Metrics{limit:1})
+  if err != nil {
+    t.Fatalf("bitly user/shorten_counts returned an error %s", err)
+  }
 }

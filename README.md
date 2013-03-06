@@ -38,8 +38,6 @@ LinkContent
 LinkCategory
 LinkSocial
 LinkLocation
-
-To Implement:
 UserClicks
 UserCountries
 UserPopularLinks
@@ -48,6 +46,8 @@ UserReferringDomains
 UserShareCounts
 UserShareCountsByShareType
 UserShotenCounts
+
+To Implement:
 UserTrackingDomainList
 UserTrakcingDomainClicks
 UserTrackingDomainShortenCounts

@@ -280,8 +280,69 @@ func (c *Connection) LinkSocial (link string) (map[string]interface{}, error) {
   return c.callOauth2("link/social", params, false)
 }
 
-// LinkSocial
-// LinkLocation
+func (c *Connection) UserClicks (metrics Metrics) (map[string]interface{}, error) {
+  params, err := constructMetricParams(metrics)
+  if err != nil {
+    return nil, err
+  }
+  return c.callOauth2("user/clicks", params, false)
+}
+
+func (c *Connection) UserCountries (metrics Metrics) (map[string]interface{}, error) {
+  params, err := constructMetricParams(metrics)
+  if err != nil {
+    return nil, err
+  }
+  return c.callOauth2("user/countries", params, false)
+}
+
+func (c *Connection) UserPopularLinks (metrics Metrics) (map[string]interface{}, error) {
+  params, err := constructMetricParams(metrics)
+  if err != nil {
+    return nil, err
+  }
+  return c.callOauth2("user/popular_links", params, false)
+}
+
+func (c *Connection) UserReferrers(metrics Metrics) (map[string]interface{}, error) {
+  params, err := constructMetricParams(metrics)
+  if err != nil {
+    return nil, err
+  }
+  return c.callOauth2("user/referrers", params, false)
+}
+
+func (c *Connection) UserReferringDomains(metrics Metrics) (map[string]interface{}, error) {
+  params, err := constructMetricParams(metrics)
+  if err != nil {
+    return nil, err
+  }
+  return c.callOauth2("user/referring_domains", params, false)
+}
+
+func (c *Connection) UserShareCounts(metrics Metrics) (map[string]interface{}, error) {
+  params, err := constructMetricParams(metrics)
+  if err != nil {
+    return nil, err
+  }
+  return c.callOauth2("user/share_counts", params, false)
+}
+
+func (c *Connection) UserShareCountsByType(metrics Metrics) (map[string]interface{}, error) {
+  params, err := constructMetricParams(metrics)
+  if err != nil {
+    return nil, err
+  }
+  return c.callOauth2("user/share_counts_by_share_type", params, false)
+}
+
+func (c *Connection) UserShortenCounts(metrics Metrics) (map[string]interface{}, error) {
+  params, err := constructMetricParams(metrics)
+  if err != nil {
+    return nil, err
+  }
+  return c.callOauth2("user/shorten_counts", params, false)
+}
 
 func (c *Connection) UserLinkLookup(uri string) (map[string]interface{}, error) {
 	params := url.Values{}
