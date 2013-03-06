@@ -139,7 +139,53 @@ func TestUserLink(t *testing.T) {
 func TestLinkMetrics(t *testing.T) {
   bitly := getConnection(t)
   _, err := bitly.LinkClicks(testUrl, Metrics{limit:1})
-   if err != nil {
+  if err != nil {
     t.Fatalf("bitly link/clicks returned an error %s", err)
   }
+
+  _, err = bitly.LinkReferrersByDomain(testUrl, Metrics{limit:1})
+  if err != nil {
+    t.Fatalf("bitly link/referrers_by_domain returned an error %s", err)
+  }
+  
+  _, err = bitly.LinkReferrers(testUrl, Metrics{limit:1})
+  if err != nil {
+    t.Fatalf("bitly link/referrers returned an error %s", err)
+  }
+
+  _, err = bitly.LinkShares(testUrl, Metrics{limit:1})
+  if err != nil {
+    t.Fatalf("bitly link/shares returned an error %s", err)
+  }
+
+  _, err = bitly.LinkCountries(testUrl, Metrics{limit:1})
+  if err != nil {
+    t.Fatalf("bitly link/countries returned an error %s", err)
+  }
+
+  _, err = bitly.LinkInfo(testUrl, Metrics{limit:1})
+  if err != nil {
+    t.Fatalf("bitly link/info returned an error %s", err)
+  }
+  
+  // _, err = bitly.LinkContent(testUrl, "html")
+  // if err != nil {
+    // t.Fatalf("bitly link/content returned an error %s", err)
+  // }
+
+  _, err = bitly.LinkCategory(testUrl)
+  if err != nil {
+    t.Fatalf("bitly link/category returned an error %s", err)
+  }
+
+  _, err = bitly.LinkLocation(testUrl)
+  if err != nil {
+    t.Fatalf("bitly link/location returned an error %s", err)
+  }
+
+  _, err = bitly.LinkSocial(testUrl)
+  if err != nil {
+    t.Fatalf("bitly link/social returned an error %s", err)
+  }
+
 }

@@ -209,6 +209,80 @@ func (c *Connection) LinkClicks(link string, metrics Metrics) (map[string]interf
   return c.callOauth2("link/clicks", params, false)
 }
 
+func (c *Connection) LinkReferrersByDomain(link string, metrics Metrics) (map[string]interface{}, error) {
+  params, err := constructMetricParams(metrics)
+  if err != nil {
+    return nil, err
+  }
+  params.Set("link", link)
+  return c.callOauth2("link/referrers_by_domain", params, false)
+}
+
+func (c *Connection) LinkReferrers (link string, metrics Metrics) (map[string]interface{}, error) {
+  params, err := constructMetricParams(metrics)
+  if err != nil {
+    return nil, err
+  }
+  params.Set("link", link)
+  return c.callOauth2("link/referrers", params, false)
+}
+
+func (c *Connection) LinkShares (link string, metrics Metrics) (map[string]interface{}, error) {
+  params, err := constructMetricParams(metrics)
+  if err != nil {
+    return nil, err
+  }
+  params.Set("link", link)
+  return c.callOauth2("link/shares", params, false)
+}
+
+func (c *Connection) LinkCountries (link string, metrics Metrics) (map[string]interface{}, error) {
+  params, err := constructMetricParams(metrics)
+  if err != nil {
+    return nil, err
+  }
+  params.Set("link", link)
+  return c.callOauth2("link/countries", params, false)
+}
+
+func (c *Connection) LinkInfo (link string, metrics Metrics) (map[string]interface{}, error) {
+  params, err := constructMetricParams(metrics)
+  if err != nil {
+    return nil, err
+  }
+  params.Set("link", link)
+  return c.callOauth2("link/info", params, false)
+}
+
+func (c *Connection) LinkContent (link string, contentType string) (map[string]interface{}, error) {
+  params := url.Values{}
+  params.Set("link", link)
+  params.Set("content_type", contentType)
+
+  return c.callOauth2("link/content", params, false)
+}
+
+func (c *Connection) LinkCategory (link string) (map[string]interface{}, error) {
+  params := url.Values{}
+  params.Set("link", link)
+  return c.callOauth2("link/category", params, false)
+}
+
+func (c *Connection) LinkLocation (link string) (map[string]interface{}, error) {
+  params := url.Values{}
+  params.Set("link", link)
+  return c.callOauth2("link/location", params, false)
+}
+
+func (c *Connection) LinkSocial (link string) (map[string]interface{}, error) {
+  params := url.Values{}
+  params.Set("link", link)
+  return c.callOauth2("link/social", params, false)
+}
+
+// LinkSocial
+// LinkLocation
+
 func (c *Connection) UserLinkLookup(uri string) (map[string]interface{}, error) {
 	params := url.Values{}
 	params.Set("url", uri)
